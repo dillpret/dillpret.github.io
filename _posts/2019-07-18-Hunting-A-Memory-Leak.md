@@ -3,8 +3,6 @@ layout: post
 title: Hunting a Memory Leak
 published: true
 ---
-## The setup
-
 So the task was simple. I was sent an email telling me that our little service had eaten nearly 3GB of memory on the server. We had a leak, and it was my job to fix it. Being the sweet summer child that I am, this was my first encounter with a memory leak. This is what I found, and what I learned.
 
 > Context: I was working in dotNet Framework, using Visual Studio 2019 as my IDE. We were using Castle Windsor for DI.
