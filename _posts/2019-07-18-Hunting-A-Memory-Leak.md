@@ -1,0 +1,32 @@
+---
+layout: post
+title: Hunting a Memory Leak
+published: true
+---
+## The setup
+
+So the task was simple. I was sent an email telling me that our little service had eaten nearly 3GB of memory on the server. We had a leak, and it was my job to fix it. Being the sweet summer child that I am, this was my first encounter with a memory leak. This is what I found, and what I learned.
+
+> Context: I was working in dotNet Framework, using Visual Studio 2019 as my IDE. We were using Castle Windsor for DI.
+
+## Looking for clues
+
+Firstly, I finally realised the value of a good memory profiler. I used *dotMemory* from JetBrains at the recommendation of a mentor. I also tried the memory profiler built into Visual Studio. It was more convenient, but didn't give me the same level of insight. A memory profiler allowed me to take snapshots of the program as it was running, and then view the differences between two snapshots in terms of allocated objects and so on. This allowed me to spot that there were waaaay too many instances of certain objects, giving me a place to start looking for problems.
+
+> Side note: The usefulness of good namespace organisation shone through when faced with too much information. The profiling tool allowed for organising objects by namespace and this made the otherwise incomprehensible wall of object names fairly easy to filter and browse.
+
+## The Disposable pattern
+
+The trail lead me to my next big learning curve: the Disposable pattern. 
+> The docs really helped me out here and I recommend reading them if you run into this.   
+https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
+
+The pattern involves managing the deallocation of resources when there is a combination of managed and unmanaged resources. The variation used in our project involved overriding the Finalize method of an object and supressing normal garbage collection. 
+
+Now normally, if your object uses a `Disposable` (ie. anything implementing `IDisposable`), you have two options. The first is to implement `IDisposable` in your object as well and call `Dispose()` on the dependancies when your object is itself disposed. The second option is to wrap your usage of the dependancy in a `using` statement, which calls dispose automatically on completion. For most of our solution we did the former, because it allows for these disposable dependancies to be injected and then disposed properly with the object itself. The exception was Factories...
+
+
+
+## Castle Windsor
+
+This brings me the the cause
